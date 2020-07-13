@@ -1,5 +1,10 @@
 const graphql = require('graphql');
 
+const createNumerator = (from) => {
+  let i = from - 1;
+  return () => ++i;
+};
+
 const words = [
   { id: 1, userId: 1, rus: "Несмотря на это", translation: "Despite this", language: "en", points: 5, isLearned: true, createdAt: "2020-07-10T10:14:20.862Z", updatedAt: "2020-07-10T10:14:20.862Z" },
   { id: 2, userId: 1, rus: "Предлагать", translation: "Suggest", language: "en", points: 5, isLearned: false, createdAt: "2020-07-10T10:14:20.863Z", updatedAt: "2020-07-10T10:14:20.863Z" },
@@ -14,10 +19,14 @@ const words = [
   { id: 11, userId: 1, rus: "Как с ... так с ...", translation: "Both ... and ...", language: "en", points: 5, isLearned: true, createdAt: "2020-07-10T10:14:20.864Z", updatedAt: "2020-07-10T10:14:20.864Z" }
 ];
 
+const wordIdGen = createNumerator(12);
+
 const users = [
   { id: 1, name: 'Elon' },
   { id: 2, name: 'Eminem' }
 ];
+
+const userOdGen = createNumerator(3);
 
 const {
   GraphQLID,
@@ -26,6 +35,7 @@ const {
   GraphQLInt,
   GraphQLList,
   GraphQLObjectType,
+  GraphQLNonNull,
   GraphQLSchema
 } = graphql;
 
@@ -33,6 +43,7 @@ const WordType = new GraphQLObjectType({
   name: 'Word',
   fields: () => ({
     id: { type: GraphQLID },
+    userId: { type: GraphQLID },
     rus: { type: GraphQLString },
     translation: { type: GraphQLString },
     language: { type: GraphQLString },
@@ -87,6 +98,38 @@ const Query = new GraphQLObjectType({
   }
 });
 
+const Mutation = new GraphQLObjectType({
+  name: 'Mutation',
+  fields: {
+    addWord: {
+      type: WordType,
+      args: {
+        rus: { type: GraphQLNonNull(GraphQLString) },
+        translation: { type: GraphQLNonNull(GraphQLString) },
+        language: { type: GraphQLNonNull(GraphQLString) },
+        userId: { type: GraphQLNonNull(GraphQLID) }
+      },
+      resolve(_, { rus, translation, language, userId }) {
+        const time = new Date();
+        const word = {
+          id: wordIdGen(),
+          rus,
+          translation,
+          language,
+          userId,
+          isLearned: false,
+          points: 0,
+          createdAt: time,
+          updatedAt: time
+        };
+        words.push(word);
+        return word;
+      }
+    }
+  }
+});
+
 module.exports = new GraphQLSchema({
   query: Query,
+  mutation: Mutation
 });
