@@ -21,14 +21,14 @@ const accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'),
 // is responsible for recalculation of hosts that enable 
 // queries to the server and credentials to  
 // pass cookies 
-const corsOptions = {
-  origin: ['*'],
-  credentials: true
-};  
+// const corsOptions = {
+//   origin: ['*'],
+//   credentials: true
+// };
 
 app
   .use(morgan(':remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-type] ":referrer" ":user-agent"', { stream: accessLogStream }))
-  .use(cors(corsOptions))
+  .use(cors())
   .use('/graphql', graphqlHTTP({ schema, graphiql: true }))
   // .use(bodyParser.urlencoded({ extended: false }))
   // .use(bodyParser.json())

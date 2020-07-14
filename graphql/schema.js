@@ -5,7 +5,7 @@ const createNumerator = (from) => {
   return () => ++i;
 };
 
-const words = [
+let words = [
   { id: 1, userId: 1, rus: "Несмотря на это", translation: "Despite this", language: "en", points: 5, isLearned: true, createdAt: "2020-07-10T10:14:20.862Z", updatedAt: "2020-07-10T10:14:20.862Z" },
   { id: 2, userId: 1, rus: "Предлагать", translation: "Suggest", language: "en", points: 5, isLearned: false, createdAt: "2020-07-10T10:14:20.863Z", updatedAt: "2020-07-10T10:14:20.863Z" },
   { id: 3, userId: 2, rus: "Поддерживать", translation: "Maintain", language: "en", points: 5, isLearned: true, createdAt: "2020-07-10T10:14:20.863Z", updatedAt: "2020-07-10T10:14:20.863Z" },
@@ -21,7 +21,7 @@ const words = [
 
 const wordIdGen = createNumerator(12);
 
-const users = [
+let users = [
   { id: 1, name: 'Elon' },
   { id: 2, name: 'Eminem' }
 ];
@@ -124,6 +124,36 @@ const Mutation = new GraphQLObjectType({
         };
         words.push(word);
         return word;
+      }
+    },
+    updateWord: {
+      type: WordType,
+      args: {
+        id: { type: GraphQLNonNull(GraphQLID) },
+        rus: { type: GraphQLString },
+        translation: { type: GraphQLString },
+        language: { type: GraphQLString }
+      },
+      resolve(_, { id, rus, translation, language }) {
+        const index = words.findIndex(x => x.id == id);
+        if (index === -1) throw new Error('Word not found');
+        if (rus) words[index].rus = rus;
+        if (translation) words[index].translation = translation;
+        if (language) words[index].language = language;
+        words[index].updatedAt = new Date();
+        return words[index];
+      }
+    },
+    deleteWord: {
+      type: WordType,
+      args: {
+        id: { type: GraphQLNonNull(GraphQLID) }
+      },
+      resolve(_, { id }) {
+        const index = words.findIndex(x => x.id == id);
+        if (index === -1) throw new Error('Word not found');
+        words = [...words.slice(0, index), ...words.slice(index + 1, words.length)];
+        return {};
       }
     }
   }
